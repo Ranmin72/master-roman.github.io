@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Круглый виджет Максимки · и починка микрофона</title>
+<meta name="description" content="Круглый виджет голосового помощника на рабочий стол Android: генератор иконки, точные шаги для KWGT и Shortcut Maker, живая диагностика микрофона.">
+<meta name="theme-color" content="#05060f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%2305060f'/%3E%3Ccircle cx='16' cy='16' r='10' fill='%237c5cff'/%3E%3Ccircle cx='13' cy='13' r='4.6' fill='%2322d3ee'/%3E%3Ccircle cx='19.5' cy='19' r='4.2' fill='%23ff3ea5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--void:#05060f;--deep:#090b1a;--panel:#0e1124;--panel2:#141833;--raise:#1c2145;
+--violet:#7c5cff;--cyan:#22d3ee;--magenta:#ff3ea5;--green:#34e07a;--amber:#ffb020;--red:#ff4d5e;--blue:#2f7dff;
+--warm:#f5efe6;--cool:#8b93b8;
+--bg:var(--void);--bg2:var(--deep);--surface:rgba(14,17,36,.82);--surface2:rgba(9,11,26,.97);--scrim:rgba(3,4,12,.9);
+--txt:#eaecff;--txt2:#a7adcf;--txt3:#767da3;--bd:rgba(124,92,255,.2);--bd2:rgba(124,92,255,.4);
+--accent:var(--violet);--on:#f2eeff;--ok:var(--green);--warn:var(--amber);--danger:var(--red);--info:var(--cyan);
+--nav:60px;--rm:14px;--rl:20px;--rx:28px;
+--sh1:0 2px 0 rgba(0,0,0,.4),0 18px 42px -22px #000;--sh2:0 34px 84px -34px #000;
+--dsp:'Unbounded','Trebuchet MS',system-ui,sans-serif;--body:'Manrope','Segoe UI',system-ui,sans-serif;--mono:'JetBrains Mono',Consolas,monospace}
+[data-theme=light]{--bg:#f5efe6;--bg2:#ece5d8;--surface:rgba(255,253,249,.9);--surface2:#fffdf9;--scrim:rgba(26,20,12,.8);
+--txt:#12142c;--txt2:#414766;--txt3:#6e7492;--bd:rgba(60,40,140,.16);--bd2:rgba(60,40,140,.3);
+--violet:#5b34d6;--cyan:#067f96;--magenta:#c2168a;--green:#12793f;--amber:#a86400;--red:#c31f36;--blue:#1257d6;--on:#fffdf9;
+--sh1:0 2px 0 rgba(120,100,70,.16),0 16px 34px -24px rgba(60,45,25,.5);--sh2:0 28px 68px -34px rgba(60,45,25,.55)}
+body[data-zone=violet]{--accent:var(--violet)}body[data-zone=cyan]{--accent:var(--cyan)}
+body[data-zone=green]{--accent:var(--green)}body[data-zone=amber]{--accent:var(--amber)}body[data-zone=magenta]{--accent:var(--magenta)}
+[data-theme=dark] body[data-zone=green]{--on:#04170c}[data-theme=dark] body[data-zone=cyan]{--on:#03161c}
+[data-theme=dark] body[data-zone=amber]{--on:#1a1000}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden;transition:background .5s,color .35s;scrollbar-color:var(--accent) var(--bg2);scrollbar-width:thin}
+body.lock{overflow:hidden}
+::selection{background:var(--accent);color:var(--on)}
+::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-track{background:var(--bg2);border-left:1px solid var(--bd)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent),var(--cyan));border:3px solid var(--bg2);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--magenta),var(--accent))}
+h1,h2,h3,h4{font-family:var(--dsp);margin:0;line-height:1.12;letter-spacing:-.025em}p{margin:0}a{color:inherit}button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:-9999px;top:0;z-index:300;background:var(--accent);color:var(--on);padding:12px 18px;font-weight:800}.skip:focus{left:0}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.veil{position:fixed;inset:0;z-index:1;pointer-events:none;transition:background 1s;background:
+radial-gradient(1000px 620px at 50% -14%,color-mix(in srgb,var(--accent) 28%,transparent),transparent 62%),
+radial-gradient(860px 520px at 96% 10%,color-mix(in srgb,var(--cyan) 15%,transparent),transparent 60%),
+radial-gradient(1050px 720px at 6% 84%,color-mix(in srgb,var(--magenta) 13%,transparent),transparent 62%),
+linear-gradient(180deg,color-mix(in srgb,var(--bg) 80%,transparent),var(--bg) 76%)}
+.grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.3;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+[data-theme=light] .grain{opacity:.15;mix-blend-mode:multiply}
+.shell{position:relative;z-index:3}
+.nav{position:fixed;inset:0 0 auto;height:var(--nav);z-index:60;display:flex;align-items:center;border-bottom:1px solid transparent;transition:.35s}
+.nav.stuck{background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px);border-bottom-color:var(--bd);box-shadow:0 14px 36px -30px #000}
+.nav-in{width:min(1280px,100% - 22px);margin-inline:auto;display:flex;align-items:center;gap:11px}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;font-family:var(--dsp);font-weight:900;font-size:13.5px;white-space:nowrap}
+.lmark{width:32px;height:32px;border-radius:50%;flex:0 0 auto;background:conic-gradient(from 0deg,var(--violet),var(--cyan),var(--magenta),var(--violet));box-shadow:0 0 18px -4px var(--accent);animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.logo b{color:var(--accent);transition:color .4s}.logo span{display:block;font-family:var(--body);font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--txt3);font-weight:700}
+.nlinks{display:flex;gap:2px;margin-left:auto}
+.nlinks a{text-decoration:none;font-size:13px;font-weight:700;padding:8px 10px;border-radius:9px;color:var(--txt2);transition:.2s;position:relative}
+.nlinks a:hover{color:var(--txt);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.nlinks a.active{color:var(--accent)}
+.nlinks a.active::after{content:"";position:absolute;left:10px;right:10px;bottom:3px;height:2px;background:var(--accent);border-radius:2px}
+.ntools{display:flex;gap:6px;align-items:center}
+.ibtn{display:inline-flex;align-items:center;gap:6px;height:35px;padding:0 11px;border-radius:11px;cursor:pointer;background:var(--surface);border:1px solid var(--bd);font-size:12px;font-weight:800;transition:.2s;white-space:nowrap}
+.ibtn:hover{border-color:var(--accent);transform:translateY(-1px)}.ibtn svg{width:15px;height:15px}
+.ibtn.muted{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 44%,transparent);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+.burger{display:none;width:37px;padding:0;justify-content:center}
+.burger i{display:block;width:17px;height:2px;background:var(--txt);border-radius:2px;position:relative;transition:.25s}
+.burger i::before,.burger i::after{content:"";position:absolute;left:0;width:17px;height:2px;background:var(--txt);border-radius:2px;transition:.25s}
+.burger i::before{top:-6px}.burger i::after{top:6px}
+.nav.open .burger i{background:transparent}.nav.open .burger i::before{transform:translateY(6px) rotate(45deg)}.nav.open .burger i::after{transform:translateY(-6px) rotate(-45deg)}
+#prog{position:absolute;left:0;bottom:-1px;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,var(--violet),var(--cyan),var(--green),var(--amber),var(--magenta))}
+.wrap{width:min(1280px,100% - 22px);margin-inline:auto}
+section{scroll-margin-top:calc(var(--nav) + 12px);position:relative}.pad{padding:64px 0}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.eyebrow::before{content:"";width:22px;height:2px;background:currentColor;border-radius:2px}
+.h2{font-size:clamp(24px,3.7vw,38px)}.h2 em{font-style:normal;color:var(--accent)}
+.sub{color:var(--txt2);max-width:66ch;margin-top:10px}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--bd2),transparent)}
+.muted{color:var(--txt2)}.small{font-size:13.5px}.tiny{font-size:12px}.mono{font-family:var(--mono)}
+.rv{opacity:0;transform:translateY(20px);transition:opacity .65s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .65s cubic-bezier(.2,.7,.2,1) var(--d,0ms)}.rv.shown{opacity:1;transform:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 17px;border-radius:13px;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:.2s;position:relative;overflow:hidden}
+.btn svg{width:16px;height:16px;flex:0 0 auto}
+.btn.p{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 45%,var(--magenta)));color:var(--on);box-shadow:0 12px 28px -14px color-mix(in srgb,var(--accent) 80%,transparent)}
+.btn.p:hover{transform:translateY(-2px)}
+.btn.p::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 22%,rgba(255,255,255,.3),transparent 78%);transform:translateX(-120%)}
+.btn.p:hover::after{transform:translateX(120%);transition:transform .7s}
+.btn.g{background:var(--surface);border-color:var(--bd2);color:var(--txt)}
+.btn.g:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+.btn.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);border-color:color-mix(in srgb,var(--ok) 44%,transparent);color:var(--ok)}
+.btn.dg{background:color-mix(in srgb,var(--danger) 12%,transparent);border-color:color-mix(in srgb,var(--danger) 40%,transparent);color:var(--danger)}
+.btn.t{padding:8px 12px;font-size:12.5px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.brow{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+/* HERO */
+.hero{padding:calc(var(--nav) + 30px) 0 44px}
+.hgrid{display:grid;grid-template-columns:1.02fr .98fr;gap:36px;align-items:center}
+h1{font-size:clamp(27px,4.5vw,50px);font-weight:900;letter-spacing:-.038em}
+h1 .g{background:linear-gradient(94deg,var(--violet),var(--cyan) 56%,var(--magenta));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hlead{margin-top:15px;font-size:16.5px;color:var(--txt2);max-width:56ch}
+.desk{position:relative;padding:22px;border-radius:32px;background:linear-gradient(160deg,#1a1030,#0a0a18 60%,#101a2c);border:1px solid var(--bd2);box-shadow:var(--sh2);overflow:hidden}
+.desk::before{content:"";position:absolute;inset:0;background:radial-gradient(400px 300px at 30% 20%,rgba(124,92,255,.3),transparent 60%),radial-gradient(360px 280px at 80% 80%,rgba(255,62,165,.22),transparent 60%);pointer-events:none}
+.deskbar{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:rgba(255,255,255,.7);font-family:var(--mono);margin-bottom:14px;position:relative}
+.deskgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;position:relative;align-items:start}
+.wslot{grid-column:span 2;grid-row:span 2;display:grid;place-items:center;gap:7px}
+.wslot canvas{width:100%;max-width:170px;height:auto;aspect-ratio:1;filter:drop-shadow(0 14px 30px rgba(0,0,0,.6))}
+.wslot span{font-size:10px;color:rgba(255,255,255,.82);font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.dapp{display:grid;place-items:center;gap:5px}
+.dapp i{display:block;width:100%;max-width:44px;aspect-ratio:1;border-radius:13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14)}
+.dapp span{font-size:8px;color:rgba(255,255,255,.5)}
+.truth{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:22px}
+.tcard{padding:16px 18px;border-radius:var(--rl);border:1px solid var(--bd2);background:var(--surface);box-shadow:var(--sh1);display:flex;gap:12px;align-items:flex-start}
+.tcard svg{width:21px;height:21px;flex:0 0 auto;margin-top:2px}
+.tcard.yes{border-color:color-mix(in srgb,var(--ok) 42%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
+.tcard.yes svg{color:var(--ok)}
+.tcard.no{border-color:color-mix(in srgb,var(--warn) 42%,transparent);background:color-mix(in srgb,var(--warn) 8%,var(--surface))}
+.tcard.no svg{color:var(--warn)}
+.tcard b{display:block;font-family:var(--dsp);font-size:13.5px;margin-bottom:5px}
+.tcard p{font-size:12.5px;color:var(--txt2)}
+/* MIC DIAG */
+.diag{display:grid;grid-template-columns:1fr 340px;gap:20px;margin-top:22px;align-items:start}
+.tests{display:grid;gap:10px}
+.test{display:flex;gap:13px;align-items:flex-start;padding:16px 18px;border-radius:var(--rm);background:var(--surface);border:1px solid var(--bd);box-shadow:var(--sh1);transition:.25s}
+.test .ic{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;background:var(--bg2);border:1px solid var(--bd2);color:var(--txt3);transition:.25s}
+.test .ic svg{width:16px;height:16px}
+.test.good{border-color:color-mix(in srgb,var(--ok) 42%,transparent)}
+.test.good .ic{background:color-mix(in srgb,var(--ok) 18%,transparent);border-color:var(--ok);color:var(--ok)}
+.test.bad{border-color:color-mix(in srgb,var(--danger) 40%,transparent)}
+.test.bad .ic{background:color-mix(in srgb,var(--danger) 15%,transparent);border-color:var(--danger);color:var(--danger)}
+.test.warn{border-color:color-mix(in srgb,var(--warn) 42%,transparent)}
+.test.warn .ic{background:color-mix(in srgb,var(--warn) 16%,transparent);border-color:var(--warn);color:var(--warn)}
+.test b{display:block;font-size:14px;font-family:var(--dsp);margin-bottom:3px}
+.test p{font-size:12.5px;color:var(--txt2)}
+.test .fix{margin-top:8px;font-size:12.5px;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--info) 9%,transparent);border-left:3px solid var(--info);color:var(--txt2)}
+.test .fix b{display:inline;font-family:var(--body);font-size:12.5px;color:var(--txt)}
+.micbox{padding:22px;border-radius:var(--rx);background:var(--surface2);border:1px solid var(--bd2);box-shadow:var(--sh2);position:sticky;top:calc(var(--nav) + 14px)}
+.micbox h3{font-size:17px;margin-bottom:6px}
+.micbox>p{font-size:13px;color:var(--txt2);margin-bottom:14px}
+.meter{height:64px;border-radius:14px;background:var(--bg2);border:1px solid var(--bd);overflow:hidden;position:relative;display:flex;align-items:flex-end;gap:2px;padding:6px}
+.meter i{flex:1;background:linear-gradient(180deg,var(--magenta),var(--cyan),var(--green));border-radius:3px;height:3%;transition:height .07s linear;opacity:.35}
+.meter.live i{opacity:1}
+.micstat{margin-top:12px;padding:12px 14px;border-radius:var(--rm);font-size:12.5px;background:var(--bg2);border:1px solid var(--bd);color:var(--txt2);min-height:56px;display:flex;align-items:center;gap:9px}
+.micstat.ok{background:color-mix(in srgb,var(--ok) 10%,transparent);border-color:color-mix(in srgb,var(--ok) 40%,transparent);color:var(--txt)}
+.micstat.err{background:color-mix(in srgb,var(--danger) 10%,transparent);border-color:color-mix(in srgb,var(--danger) 40%,transparent);color:var(--txt)}
+.heard{margin-top:10px;padding:11px 13px;border-radius:var(--rm);background:var(--bg2);border:1px solid var(--bd);font-size:13.5px;color:var(--txt2);min-height:44px}
+.heard.live{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+/* WAYS */
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-top:22px}
+.way{padding:22px;border-radius:var(--rx);background:var(--surface);border:1px solid var(--bd);box-shadow:var(--sh1);cursor:pointer;text-align:left;transition:.25s;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden}
+.way:hover{transform:translateY(-5px);border-color:var(--c)}
+.way.on{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 40%,transparent),var(--sh1)}
+.way::before{content:attr(data-n);position:absolute;right:-4px;top:-24px;font-family:var(--dsp);font-size:88px;font-weight:900;color:color-mix(in srgb,var(--c) 12%,transparent);line-height:1}
+.wico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 17%,transparent);border:1px solid color-mix(in srgb,var(--c) 42%,transparent);color:var(--c);position:relative}
+.wico svg{width:21px;height:21px}
+.way b{font-family:var(--dsp);font-size:15.5px;position:relative}
+.way p{font-size:12.8px;color:var(--txt2);flex:1;position:relative}
+.wtag{display:inline-flex;gap:6px;align-items:center;font-size:10px;font-weight:800;padding:4px 9px;border-radius:99px;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 38%,transparent);align-self:flex-start;position:relative}
+.steps{margin-top:20px;padding:22px;border-radius:var(--rx);background:var(--surface2);border:1px solid var(--bd2);box-shadow:var(--sh2)}
+.steps h3{font-size:18px;margin-bottom:5px}
+.steps>p{font-size:13px;color:var(--txt2);margin-bottom:15px}
+.slist{display:grid;gap:10px}
+.stp{display:flex;gap:13px;padding:15px 17px;border-radius:var(--rm);background:var(--surface);border:1px solid var(--bd);transition:.22s}
+.stp.done{border-color:color-mix(in srgb,var(--ok) 44%,transparent);background:color-mix(in srgb,var(--ok) 7%,var(--surface))}
+.stp input{width:19px;height:19px;accent-color:var(--ok);flex:0 0 auto;margin-top:2px;cursor:pointer}
+.stp .num{font-family:var(--mono);font-size:10.5px;color:var(--txt3);letter-spacing:.1em}
+.stp b{display:block;font-size:14.5px;font-family:var(--dsp);margin:3px 0 4px}
+.stp p{font-size:13px;color:var(--txt2)}
+.stp code{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--bg2);padding:2px 7px;border-radius:6px;border:1px solid var(--bd);word-break:break-all}
+.sprog{height:7px;border-radius:99px;background:var(--bg2);border:1px solid var(--bd);overflow:hidden;margin:14px 0 6px}
+.sprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:width .4s}
+/* ICON CONFIG */
+.igrid{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-top:22px;align-items:start}
+.panel{padding:16px;border-radius:var(--rl);background:var(--surface);border:1px solid var(--bd2);box-shadow:var(--sh1)}
+.prow{display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end}
+.prow+.prow{margin-top:12px;padding-top:12px;border-top:1px dashed var(--bd)}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld>label{font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--txt3)}
+input[type=text],input[type=url],select{padding:10px 12px;border-radius:11px;background:var(--bg2);border:1px solid var(--bd);color:var(--txt);font:inherit;font-size:14px;transition:.2s;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+select{cursor:pointer;font-weight:700;font-size:13px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:106px;height:22px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--cyan));border:1px solid var(--bd)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:99px;background:var(--surface2);border:2px solid var(--accent)}
+input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--cyan))}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:99px;background:var(--surface2);border:2px solid var(--accent)}
+.rwrap{display:flex;align-items:center;gap:7px}
+.rval{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);min-width:36px;text-align:right}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 12px;border-radius:99px;background:var(--bg2);border:1px solid var(--bd);color:var(--txt2);font-size:12px;font-weight:800;cursor:pointer;transition:.2s;white-space:nowrap}
+.chip:hover{border-color:var(--accent);color:var(--txt)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--on)}
+.sw{width:28px;height:28px;border-radius:9px;border:2px solid var(--bd);cursor:pointer;transition:.2s}
+.sw:hover{transform:translateY(-2px)}.sw.on{border-color:var(--txt);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 32%,transparent)}
+.tgl{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--txt2);cursor:pointer;user-select:none;white-space:nowrap}
+.tgl input{position:absolute;opacity:0;width:0;height:0}
+.track{width:37px;height:21px;border-radius:99px;background:var(--bg2);border:1px solid var(--bd2);position:relative;transition:.22s;flex:0 0 auto}
+.track::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:99px;background:var(--txt3);transition:.22s}
+.tgl input:checked+.track{background:color-mix(in srgb,var(--accent) 28%,transparent);border-color:var(--accent)}
+.tgl input:checked+.track::after{transform:translateX(16px);background:var(--accent)}
+.tgl input:focus-visible+.track{outline:3px solid var(--accent);outline-offset:3px}
+.sp{flex:1 1 auto}
+.iprev{position:sticky;top:calc(var(--nav) + 14px);display:grid;gap:14px}
+.ibox{padding:20px;border-radius:var(--rx);background:var(--surface2);border:1px solid var(--bd2);box-shadow:var(--sh2);display:grid;place-items:center;gap:12px}
+.ibox canvas{width:min(240px,60vw);height:auto;aspect-ratio:1}
+.ibox .cap{font-size:11.5px;color:var(--txt3);font-family:var(--mono)}
+.sizes{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.notebox{margin-top:18px;padding:16px 18px;border-radius:var(--rl);display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--txt2);background:color-mix(in srgb,var(--info) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--info) 32%,transparent)}
+.notebox svg{width:21px;height:21px;color:var(--info);flex:0 0 auto;margin-top:2px}
+.notebox b{color:var(--txt);display:block;margin-bottom:4px;font-family:var(--dsp);font-size:13.5px}
+.notebox.warn{background:color-mix(in srgb,var(--warn) 9%,var(--surface));border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+.notebox.warn svg{color:var(--warn)}
+.notebox ol{margin:8px 0 0;padding-left:19px}.notebox li{margin-bottom:5px}
+.kw{padding:20px;border-radius:var(--rx);background:var(--surface);border:1px solid var(--bd2);box-shadow:var(--sh1);margin-top:16px}
+.kw h4{font-size:15px;margin-bottom:10px;font-family:var(--dsp)}
+.kwrow{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:11px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:7px;flex-wrap:wrap}
+.kwrow .k{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);flex:0 0 118px}
+.kwrow .v{font-family:var(--mono);font-size:12.5px;color:var(--accent);flex:1 1 130px;word-break:break-all}
+footer{border-top:1px solid var(--bd);background:color-mix(in srgb,var(--bg2) 80%,transparent);padding:34px 0 24px;margin-top:14px}
+.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:26px}
+.fgrid h4{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px}
+.fl{display:grid;gap:7px}.fl button{font-size:13px;color:var(--txt2);background:none;border:0;padding:0;text-align:left;cursor:pointer;font-family:inherit;transition:.2s}
+.fl button:hover{color:var(--accent)}
+.cbar{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--bd);font-size:12px;color:var(--txt3)}
+#ov{position:fixed;inset:0;z-index:140;display:flex;flex-direction:column;background:var(--scrim);backdrop-filter:blur(10px);opacity:0;transition:opacity .28s}
+#ov.in{opacity:1}
+.ovbar{display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--bd2);background:var(--surface2);flex:0 0 auto}
+.ovbar b{font-family:var(--dsp);font-size:14px;flex:1 1 auto;min-width:0}
+.x{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;background:var(--bg2);border:1px solid var(--bd);cursor:pointer;transition:.2s;flex:0 0 auto}
+.x:hover{border-color:var(--danger);color:var(--danger);transform:rotate(90deg)}
+.ovbody{flex:1;overflow:auto;padding:18px 16px 26px;display:flex;flex-direction:column;align-items:center;gap:13px;scrollbar-color:var(--accent) transparent}
+#ovTa{width:100%;max-width:760px;min-height:300px;padding:15px;border-radius:16px;background:var(--surface2);border:1px solid var(--bd2);color:var(--txt);font-family:var(--mono);font-size:12px;line-height:1.6;resize:vertical}
+#ovImg{width:100%;max-width:340px;border-radius:20px;border:1px solid var(--bd2);background:var(--bg2)}
+.ovacts{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;width:100%;max-width:760px}
+.ovacts .btn{flex:1 1 150px}
+#toasts{position:fixed;left:14px;right:14px;bottom:14px;z-index:160;display:grid;gap:8px;justify-items:center;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 15px;border-radius:13px;font-size:13px;font-weight:700;background:var(--surface2);border:1px solid var(--bd2);box-shadow:var(--sh2);opacity:0;transform:translateY(12px);transition:.3s cubic-bezier(.2,.8,.2,1);max-width:520px;pointer-events:auto}
+.toast.in{opacity:1;transform:none}
+.tdot{width:8px;height:8px;border-radius:99px;background:var(--ok);flex:0 0 auto;box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 20%,transparent)}
+.tact{padding:6px 11px;border-radius:9px;background:var(--accent);color:var(--on);border:0;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+@media(max-width:1080px){.hgrid,.diag,.igrid{grid-template-columns:1fr}.desk{order:-1}.micbox,.iprev{position:static}.truth{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:860px){.nlinks{position:fixed;top:var(--nav);left:0;right:0;flex-direction:column;gap:2px;padding:12px 14px 18px;background:color-mix(in srgb,var(--bg) 98%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid var(--bd);transform:translateY(-130%);transition:transform .32s cubic-bezier(.2,.8,.2,1);max-height:calc(100vh - var(--nav));overflow:auto}
+.nav.open .nlinks{transform:none}.nlinks a{padding:12px 13px;font-size:15px}.burger{display:inline-flex}.ntools .tl{display:none}.pad{padding:46px 0}.fgrid{grid-template-columns:1fr}}
+@media(max-width:520px){.ways{grid-template-columns:1fr}.btn{width:100%}.brow .btn,.ovacts .btn,.sizes .btn{width:auto}.sizes .btn{flex:1 1 44%}input[type=range]{width:92px}.kwrow .k{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body data-zone="violet">
+<a class="skip" href="#mic">Перейти к проверке микрофона</a>
+<canvas id="bg" aria-hidden="true"></canvas><div class="veil" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div>
+<div class="shell">
+<header class="nav" id="nav"><div class="nav-in">
+  <a class="logo" href="#top"><span class="lmark" aria-hidden="true"></span><span><b>Максимка</b><span>виджет и микрофон</span></span></a>
+  <nav class="nlinks" id="nlinks" aria-label="Разделы">
+    <a href="#mic">Микрофон</a><a href="#ways">Способы</a><a href="#steps">Шаги</a><a href="#icon">Иконка</a>
+  </nav>
+  <div class="ntools">
+    <button type="button" class="ibtn" id="soundBtn" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9v6h4l5 4V5L8 9Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M17 9a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span class="tl">Звук</span></button>
+    <button type="button" class="ibtn js-theme" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tl">Тёмная</span></button>
+    <button type="button" class="ibtn burger" id="burger" aria-expanded="false" aria-controls="nlinks" aria-label="Меню"><i></i></button>
+  </div>
+</div><div id="prog"></div></header>
+
+<main id="top">
+<section class="hero" data-accent="violet"><div class="wrap hgrid">
+  <div>
+    <h1 class="rv">Круглый <span class="g">виджет</span> на рабочий стол</h1>
+    <p class="hlead rv">Живой шар Максимки прямо среди иконок телефона. Ниже — три способа его сделать, готовая круглая иконка нужного размера и живая проверка микрофона, чтобы понять, почему он молчит.</p>
+    <div class="brow rv"><a class="btn p" href="#mic">Проверить микрофон</a><a class="btn g" href="#ways">Выбрать способ</a></div>
+    <div class="truth">
+      <div class="tcard yes rv"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><b>Круглый виджет — реально</b><p>Через приложение KWGT. Оно рисует виджет любой формы, а по нажатию открывает помощника. Займёт минут десять.</p></div></div>
+      <div class="tcard no rv"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><b>Микрофон в приложении</b><p>Встроенный просмотр Qwen не даёт сайтам микрофон — это ограничение самого приложения. Проверка ниже покажет точно и даст обход.</p></div></div>
+    </div>
+  </div>
+  <div class="desk rv">
+    <div class="deskbar"><span>9:41</span><span>МАКСИМКА · 2×2</span><span>▮▮▮ 87%</span></div>
+    <div class="deskgrid">
+      <div class="wslot"><canvas id="widgetCv" width="440" height="440" role="img" aria-label="Круглый виджет Максимки"></canvas><span>Максимка</span></div>
+      <div class="dapp"><i></i><span>Телефон</span></div>
+      <div class="dapp"><i></i><span>Камера</span></div>
+      <div class="dapp"><i></i><span>ОК</span></div>
+      <div class="dapp"><i></i><span>MAX</span></div>
+      <div class="dapp"><i></i><span>Фото</span></div>
+      <div class="dapp"><i></i><span>Часы</span></div>
+      <div class="dapp"><i></i><span>Карты</span></div>
+      <div class="dapp"><i></i><span>Почта</span></div>
+    </div>
+  </div>
+</div></section>
+
+<div class="rule"></div>
+
+<section id="mic" class="pad" data-accent="cyan"><div class="wrap">
+  <span class="eyebrow rv">Почему молчит</span>
+  <h2 class="h2 rv">Живая проверка <em>микрофона</em></h2>
+  <p class="sub rv">Это настоящие тесты вашего браузера, а не картинки. Нажмите «Проверить» — страница запросит микрофон и покажет уровень звука в реальном времени.</p>
+  <div class="diag">
+    <div class="tests" id="tests"></div>
+    <aside class="micbox rv">
+      <h3>Тест вживую</h3>
+      <p>Нажмите кнопку и скажите что-нибудь. Полоски должны двигаться — значит микрофон слышит.</p>
+      <div class="meter" id="meter"></div>
+      <div class="micstat" id="micStat"><span>Нажмите «Проверить микрофон», чтобы начать.</span></div>
+      <div class="heard" id="heardBox">Здесь появится распознанная фраза, если браузер умеет распознавать речь.</div>
+      <div class="brow" style="margin-top:13px"><button type="button" class="btn p" id="micTest">Проверить микрофон</button><button type="button" class="btn g t" id="micStop" disabled>Стоп</button></div>
+      <div class="brow" style="margin-top:8px"><button type="button" class="btn g t" id="srTest">Проверить распознавание</button><button type="button" class="btn g t" id="ttsTest">Проверить озвучку</button></div>
+    </aside>
+  </div>
+  <div class="notebox rv"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <div><b>Главный обход: открыть в настоящем Chrome</b>
+      <ol><li>Нажмите «Скопировать адрес помощника» ниже.</li>
+      <li>Откройте приложение <b>Chrome</b> на телефоне (не внутри Qwen).</li>
+      <li>Вставьте адрес в строку вверху и перейдите.</li>
+      <li>Chrome спросит разрешение на микрофон — нажмите <b>«Разрешить»</b>.</li>
+      <li>Если спросил раньше и вы отказали: значок замка слева от адреса → «Разрешения» → Микрофон → включить.</li></ol>
+      В Chrome работает и распознавание речи, и озвучка. Во встроенном просмотре — почти никогда.</div></div>
+  <div class="brow rv"><button type="button" class="btn p" id="copyHelper">Скопировать адрес помощника</button><button type="button" class="btn g" id="openHelper">Попробовать открыть</button><button type="button" class="btn g" id="micGuide">Полная инструкция по микрофону</button></div>
+</div></section>
+
+<div class="rule"></div>
+
+<section id="ways" class="pad" data-accent="green"><div class="wrap">
+  <span class="eyebrow rv">Три пути</span>
+  <h2 class="h2 rv">Как сделать <em>круглый виджет</em></h2>
+  <p class="sub rv">Выберите способ — ниже появятся точные шаги именно для него. Первый даёт настоящий виджет, второй проще, третий показывает живую страницу.</p>
+  <div class="ways" id="wayGrid"></div>
+</div></section>
+
+<div class="rule"></div>
+
+<section id="steps" class="pad" data-accent="amber"><div class="wrap">
+  <span class="eyebrow rv">Пошагово</span>
+  <h2 class="h2 rv" id="stepsTitle">Шаги для <em>KWGT</em></h2>
+  <p class="sub" id="stepsSub">Отмечайте выполненное — прогресс сохраняется.</p>
+  <div class="steps rv">
+    <h3 id="stepsHead">Настоящий круглый виджет</h3>
+    <p id="stepsLead">Понадобится приложение KWGT и картинка, которую вы сделаете в разделе «Иконка».</p>
+    <div class="slist" id="stepList"></div>
+    <div class="sprog"><i id="stepProg"></i></div>
+    <p class="tiny muted" id="stepText">Выполнено 0 из 0</p>
+    <div class="brow"><button type="button" class="btn p t" id="stepsCopy">Скопировать инструкцию</button><button type="button" class="btn g t" id="stepsReset">Сбросить отметки</button><a class="btn g t" href="#icon">Сделать иконку</a></div>
+  </div>
+  <div class="kw rv" id="kwBox">
+    <h4>Что вписать в KWGT</h4>
+    <div class="kwrow"><span class="k">Форма</span><span class="v">Shape → Circle</span><button type="button" class="btn g t js-cp" data-v="Shape → Circle">Копировать</button></div>
+    <div class="kwrow"><span class="k">Размер виджета</span><span class="v">2 × 2 клетки</span><button type="button" class="btn g t js-cp" data-v="2 × 2 клетки">Копировать</button></div>
+    <div class="kwrow"><span class="k">Картинка</span><span class="v">Bitmap → выбрать maksimka-widget.png</span><button type="button" class="btn g t js-cp" data-v="Bitmap → maksimka-widget.png">Копировать</button></div>
+    <div class="kwrow"><span class="k">Нажатие</span><span class="v">Touch → Open Link</span><button type="button" class="btn g t js-cp" data-v="Touch → Open Link">Копировать</button></div>
+    <div class="kwrow"><span class="k">Ссылка</span><span class="v" id="kwUrl"></span><button type="button" class="btn g t" id="kwCopyUrl">Копировать</button></div>
+    <div class="kwrow"><span class="k">Прозрачность фона</span><span class="v">Background → Off</span><button type="button" class="btn g t js-cp" data-v="Background → Off">Копировать</button></div>
+  </div>
+</div></section>
+
+<div class="rule"></div>
+
+<section id="icon" class="pad" data-accent="magenta"><div class="wrap">
+  <span class="eyebrow rv">Картинка для виджета</span>
+  <h2 class="h2 rv">Круглая <em>иконка Максимки</em></h2>
+  <p class="sub rv">Настройте вид и сохраните PNG. Именно этот файл вы подставите в KWGT или Shortcut Maker. Прозрачный фон — чтобы на рабочем столе был именно круг, а не квадрат с углами.</p>
+  <div class="igrid">
+    <div class="panel rv" role="region" aria-label="Настройки иконки">
+      <div class="prow">
+        <div class="fld"><label>Форма</label><div class="chips" id="shapeChips"></div></div>
+        <div class="fld"><label>Палитра шара</label><div class="chips" id="palChips"></div></div>
+        <div class="fld"><label>Фон</label><div class="chips" id="bgChips"></div></div>
+      </div>
+      <div class="prow">
+        <div class="fld"><label for="iScale">Размер шара</label><div class="rwrap"><input type="range" id="iScale" min="0.55" max="1.15" step="0.01"><span class="rval" id="iScaleV"></span></div></div>
+        <div class="fld"><label for="iGlow">Свечение</label><div class="rwrap"><input type="range" id="iGlow" min="0" max="1.4" step="0.02"><span class="rval" id="iGlowV"></span></div></div>
+        <div class="fld"><label for="iTurb">Турбулентность</label><div class="rwrap"><input type="range" id="iTurb" min="0" max="1" step="0.02"><span class="rval" id="iTurbV"></span></div></div>
+        <div class="fld"><label for="iRing">Толщина кольца</label><div class="rwrap"><input type="range" id="iRing" min="0" max="14" step="0.5"><span class="rval" id="iRingV"></span></div></div>
+        <div class="fld"><label for="iBars">Лучи</label><div class="rwrap"><input type="range" id="iBars" min="0" max="120" step="4"><span class="rval" id="iBarsV"></span></div></div>
+      </div>
+      <div class="prow">
+        <div class="fld"><label for="iSpeed">Вращение</label><div class="rwrap"><input type="range" id="iSpeed" min="0" max="2.5" step="0.05"><span class="rval" id="iSpeedV"></span></div></div>
+        <label class="tgl"><input type="checkbox" id="iTrans"><span class="track"></span>Прозрачный фон</label>
+        <label class="tgl"><input type="checkbox" id="iOrbit"><span class="track"></span>Орбиты</label>
+        <label class="tgl"><input type="checkbox" id="iDot"><span class="track"></span>Огонёк «в эфире»</label>
+        <span class="sp"></span>
+        <button type="button" class="btn g t" id="iRand">Случайный вид</button>
+        <button type="button" class="btn g t" id="iReset">Сброс</button>
+      </div>
+      <div class="prow">
+        <div class="fld" style="flex:1 1 260px"><label for="iUrl">Ссылка, которую откроет виджет</label><input id="iUrl" type="url" placeholder="https://master-romanrf.github.io/maksimka.html"></div>
+        <button type="button" class="btn g t" id="iCopyUrl">Копировать</button>
+      </div>
+    </div>
+    <aside class="iprev">
+      <div class="ibox rv">
+        <canvas id="iconCv" width="512" height="512" role="img" aria-label="Иконка виджета"></canvas>
+        <span class="cap" id="iconCap">512 × 512 · PNG</span>
+        <div class="sizes" id="sizeChips"></div>
+        <div class="brow" style="margin-top:4px;justify-content:center"><button type="button" class="btn p" id="iSave">Сохранить картинку</button><button type="button" class="btn g t" id="iDl">Скачать файл</button></div>
+      </div>
+      <div class="notebox rv" style="margin-top:0"><svg viewBox="0 0 24 24" fill="none"><path d="M9 11V6a2 2 0 1 1 4 0v5m0-1a2 2 0 1 1 4 0v1m0 0a2 2 0 1 1 4 0v4a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-1l-2-3a2 2 0 0 1 3-2l2 2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><b>Как сохранить с телефона</b>Нажмите «Сохранить картинку» — она откроется крупно. Зажмите палец на секунду и выберите «Сохранить изображение». Файл попадёт в галерею, оттуда его подхватит KWGT.</div></div>
+    </aside>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div><a class="logo" href="#top" style="margin-bottom:10px"><span class="lmark" aria-hidden="true"></span><span><b>Максимка</b><span>виджет и микрофон</span></span></a>
+      <p class="small muted" style="max-width:46ch">Все проверки идут в вашем браузере, картинка рисуется на устройстве. Ничего не отправляется на сервер.</p></div>
+    <div><h4>Разделы</h4><div class="fl"><button type="button" data-go="#mic">Микрофон</button><button type="button" data-go="#ways">Способы</button><button type="button" data-go="#steps">Шаги</button><button type="button" data-go="#icon">Иконка</button></div></div>
+    <div><h4>Действия</h4><div class="fl"><button type="button" id="fMic">Проверить микрофон</button><button type="button" id="fIcon">Сохранить иконку</button><button type="button" id="fGuide">Инструкция целиком</button><button type="button" id="fReset">Сбросить всё</button></div></div>
+  </div>
+  <div class="cbar"><span>© <span id="yr">2026</span> Максимка · помощник Романа</span><span id="envLine">Проверяю окружение…</span></div>
+</div></footer>
+</div>
+
+<div id="ov" hidden role="dialog" aria-modal="true" aria-label="Просмотр"><div class="ovbar"><b id="ovTitle">Просмотр</b><button type="button" class="x" id="ovClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div><div class="ovbody" id="ovBody"></div></div>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var LS={get:function(k,f){try{var v=localStorage.getItem('wv_'+k);return v?JSON.parse(v):f}catch(e){return f}},
+set:function(k,v){try{localStorage.setItem('wv_'+k,JSON.stringify(v))}catch(e){}}};
+var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,root=document.documentElement;
+var HELPER='https://master-romanrf.github.io/maksimka.html';
+
+var PALS={aurora:{n:'Аврора',h:[[124,92,255],[34,211,238],[255,62,165],[52,224,122]]},
+ember:{n:'Уголь',h:[[255,176,32],[255,77,94],[255,62,165],[124,92,255]]},
+ocean:{n:'Океан',h:[[47,125,255],[34,211,238],[52,224,122],[124,92,255]]},
+candy:{n:'Карамель',h:[[255,62,165],[255,176,32],[124,92,255],[34,211,238]]},
+forest:{n:'Хвоя',h:[[52,224,122],[34,211,238],[255,176,32],[47,125,255]]}};
+var SHAPES=[{k:'circle',n:'Круг'},{k:'squircle',n:'Скруглённый'},{k:'square',n:'Квадрат'}];
+var BGS=[{k:'transparent',n:'Прозрачный'},{k:'dark',n:'Тёмный'},{k:'deep',n:'Индиго'},{k:'light',n:'Светлый'}];
+var SIZES=[192,256,512,1024];
+var DEF={shape:'circle',pal:'aurora',bg:'transparent',scale:.92,glow:.9,turb:.5,ring:5,bars:64,speed:1,
+ trans:true,orbit:true,dot:true,size:512,url:HELPER,sound:true,way:'kwgt'};
+var cfg=Object.assign({},DEF,LS.get('cfg',{}));
+var stepDone=LS.get('steps',{});
+function persist(){LS.set('cfg',cfg);LS.set('steps',stepDone)}
+
+/* ---------- utils ---------- */
+var tw=$('#toasts');
+function toast(m,label,fn){var el=document.createElement('div');el.className='toast';
+el.innerHTML='<span class="tdot"></span><span style="flex:1"></span>';el.children[1].textContent=m;
+if(label){var b=document.createElement('button');b.className='tact';b.type='button';b.textContent=label;
+b.onclick=function(){if(fn)fn();close()};el.appendChild(b)}
+tw.appendChild(el);requestAnimationFrame(function(){el.classList.add('in')});
+var t=setTimeout(close,label?7000:3400);
+function close(){clearTimeout(t);el.classList.remove('in');setTimeout(function(){el.remove()},320)}}
+function copyText(t,label,onFail){var done=function(){toast(label||'Скопировано');tone(880,.1)};
+var legacy=function(){var ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');
+ ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,t.length);
+ var ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();
+ if(ok)done();else if(onFail)onFail();else openText('Скопируйте вручную',t)};
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,legacy);else legacy()}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+/* ---------- sound ---------- */
+var actx=null;
+function ac(){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}
+ if(actx.state==='suspended'){try{actx.resume()}catch(e){}}return actx}
+function tone(f,d,g){if(!cfg.sound)return;var a=ac();if(!a)return;
+ try{var o=a.createOscillator(),gn=a.createGain();o.type='sine';o.frequency.value=f;
+  gn.gain.setValueAtTime(0,a.currentTime);gn.gain.linearRampToValueAtTime(g||.06,a.currentTime+.015);
+  gn.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);
+  o.connect(gn);gn.connect(a.destination);o.start();o.stop(a.currentTime+d+.02)}catch(e){}}
+function chime(){tone(660,.13);setTimeout(function(){tone(990,.17)},110)}
+$('#soundBtn').onclick=function(){cfg.sound=!cfg.sound;persist();syncSound();if(cfg.sound)chime();toast(cfg.sound?'Звук включён':'Звук выключен')};
+function syncSound(){var b=$('#soundBtn');b.classList.toggle('muted',!cfg.sound);b.setAttribute('aria-pressed',String(cfg.sound));
+ $('.tl',b).textContent=cfg.sound?'Звук':'Тихо'}
+
+/* ---------- sphere ---------- */
+function sphere(g,W,H,hues,t,amp,scale,glow,turb,bars,orbit,dot){
+ var cx=W/2,cy=H/2,R=Math.min(W,H)*.40*scale;
+ g.globalCompositeOperation='lighter';
+ var au=g.createRadialGradient(cx,cy,R*.2,cx,cy,R*1.55);
+ au.addColorStop(0,'rgba('+hues[0][0]+','+hues[0][1]+','+hues[0][2]+','+(.32*glow)+')');
+ au.addColorStop(.6,'rgba('+hues[0][0]+','+hues[0][1]+','+hues[0][2]+','+(.10*glow)+')');
+ au.addColorStop(1,'rgba('+hues[0][0]+','+hues[0][1]+','+hues[0][2]+',0)');
+ g.fillStyle=au;g.beginPath();g.arc(cx,cy,R*1.55,0,6.2832);g.fill();
+ for(var b=0;b<4;b++){
+  var hue=hues[b%hues.length],ph=t*.5+b*1.7;
+  var bx=cx+Math.cos(ph*.9+b)*R*.13,by=cy+Math.sin(ph*1.1+b*2)*R*.13,base=R*(.62+b*.04);
+  g.beginPath();
+  for(var a=0;a<=56;a++){var ang=a/56*6.2832;
+   var wob=Math.sin(ang*3+ph*1.6)*.5+Math.sin(ang*5-ph*1.1)*.32+Math.sin(ang*2+ph*.7)*.24;
+   var rr=base*(1+turb*.17*wob+amp*.18*Math.sin(ang*4+t*3.2+b));
+   var x=bx+Math.cos(ang)*rr,y=by+Math.sin(ang)*rr;a?g.lineTo(x,y):g.moveTo(x,y)}
+  g.closePath();
+  var gr=g.createRadialGradient(bx-base*.2,by-base*.25,base*.05,bx,by,base*1.1);
+  var al=.55*(.7+amp*.6);
+  gr.addColorStop(0,'rgba('+hue[0]+','+hue[1]+','+hue[2]+','+al+')');
+  gr.addColorStop(.55,'rgba('+hue[0]+','+hue[1]+','+hue[2]+','+(al*.45)+')');
+  gr.addColorStop(1,'rgba('+hue[0]+','+hue[1]+','+hue[2]+',0)');
+  g.fillStyle=gr;g.fill()}
+ var core=g.createRadialGradient(cx-R*.06,cy-R*.08,0,cx,cy,R*.44);
+ core.addColorStop(0,'rgba(255,255,255,.78)');
+ core.addColorStop(.45,'rgba('+hues[1][0]+','+hues[1][1]+','+hues[1][2]+',.34)');
+ core.addColorStop(1,'rgba('+hues[1][0]+','+hues[1][1]+','+hues[1][2]+',0)');
+ g.fillStyle=core;g.beginPath();g.arc(cx,cy,R*.44,0,6.2832);g.fill();
+ var n=bars|0,inner=R*.99;
+ for(var k=0;k<n;k++){var ang2=k/n*6.2832+t*.12;
+  var wave=Math.sin(k*.42+t*2.6)*.5+.5,hh=R*(.02+amp*.16*wave),h2=hues[k%hues.length];
+  g.strokeStyle='rgba('+h2[0]+','+h2[1]+','+h2[2]+',.62)';
+  g.lineWidth=Math.max(1.2,R*.014);g.lineCap='round';
+  g.beginPath();g.moveTo(cx+Math.cos(ang2)*inner,cy+Math.sin(ang2)*inner);
+  g.lineTo(cx+Math.cos(ang2)*(inner+hh),cy+Math.sin(ang2)*(inner+hh));g.stroke()}
+ if(orbit){for(var o=0;o<3;o++){var orr=R*(1.12+o*.07)+Math.sin(t*1.1+o)*R*.012,h3=hues[(o+1)%hues.length];
+  g.strokeStyle='rgba('+h3[0]+','+h3[1]+','+h3[2]+','+(.24-o*.06)+')';
+  g.lineWidth=Math.max(1,R*.007);g.beginPath();g.arc(cx,cy,orr,0,6.2832);g.stroke()}}
+ g.globalCompositeOperation='source-over';
+ if(dot){var dx=cx+R*.72,dy=cy-R*.72;
+  g.fillStyle='rgba(52,224,122,.95)';g.beginPath();g.arc(dx,dy,Math.max(3,R*.075),0,6.2832);g.fill();
+  g.strokeStyle='rgba(5,6,15,.9)';g.lineWidth=Math.max(1.5,R*.022);g.stroke()}}
+
+function bgColor(){return cfg.bg==='transparent'?null:cfg.bg==='dark'?'#05060f':cfg.bg==='deep'?'#0e1124':'#f5efe6'}
+function paintIcon(cv,size,live,t){
+ var g=cv.getContext('2d');cv.width=size;cv.height=size;
+ g.clearRect(0,0,size,size);
+ var bg=cfg.trans?null:bgColor();
+ g.save();
+ if(cfg.shape==='circle'){g.beginPath();g.arc(size/2,size/2,size/2,0,6.2832);g.clip()}
+ else if(cfg.shape==='squircle'){var r=size*.24;g.beginPath();
+  g.moveTo(r,0);g.arcTo(size,0,size,size,r);g.arcTo(size,size,0,size,r);g.arcTo(0,size,0,0,r);g.arcTo(0,0,size,0,r);g.closePath();g.clip()}
+ if(bg){g.fillStyle=bg;g.fillRect(0,0,size,size)}
+ sphere(g,size,size,(PALS[cfg.pal]||PALS.aurora).h,t||1.2,live?.24:.2,cfg.scale,cfg.glow,cfg.turb,cfg.bars,cfg.orbit,cfg.dot);
+ g.restore();
+ if(cfg.ring>0){
+  var hues=(PALS[cfg.pal]||PALS.aurora).h;
+  var lg=g.createLinearGradient(0,0,size,size);
+  lg.addColorStop(0,'rgb('+hues[0]+')');lg.addColorStop(.5,'rgb('+hues[1]+')');lg.addColorStop(1,'rgb('+hues[2]+')');
+  g.strokeStyle=lg;g.lineWidth=cfg.ring*(size/512);
+  var inset=cfg.ring*(size/512)/2;
+  if(cfg.shape==='circle'){g.beginPath();g.arc(size/2,size/2,size/2-inset,0,6.2832);g.stroke()}
+  else if(cfg.shape==='squircle'){var r2=size*.24;g.beginPath();
+   g.moveTo(r2+inset,inset);g.arcTo(size-inset,inset,size-inset,size-inset,r2);
+   g.arcTo(size-inset,size-inset,inset,size-inset,r2);g.arcTo(inset,size-inset,inset,inset,r2);
+   g.arcTo(inset,inset,size-inset,inset,r2);g.closePath();g.stroke()}
+  else{g.strokeRect(inset,inset,size-inset*2,size-inset*2)}}
+ return cv}
+
+/* ---------- MIC DIAGNOSIS ---------- */
+var ua=navigator.userAgent||'';
+var isWebView=/; wv\)/.test(ua)||(/Version\/[\d.]+/.test(ua)&&/Chrome/.test(ua)&&/Mobile/.test(ua));
+var isIOS=/iPad|iPhone|iPod/.test(ua);
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+var micStream=null,analyser=null,freq=null,micRaf=null,rec=null;
+var meterBars=[];
+(function(){var m=$('#meter');for(var i=0;i<28;i++){var b=document.createElement('i');m.appendChild(b);meterBars.push(b)}})();
+var TESTS=[
+ {id:'secure',t:'Защищённое соединение',
+  run:function(){var ok=window.isSecureContext||location.protocol==='https:'||location.hostname==='localhost';
+   return{s:ok?'good':'bad',d:ok?'Адрес защищён (https) — микрофон разрешён политикой браузера.':'Без https браузер не даст доступ к микрофону вообще.',
+    fix:ok?'':'Откройте страницу по адресу https://master-romanrf.github.io/… — GitHub Pages даёт https автоматически.'}},
+  ic:'<rect x="4" y="10" width="16" height="10" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/>'},
+ {id:'webview',t:'Где открыта страница',
+  run:function(){var bad=isWebView||location.protocol==='file:';
+   return{s:bad?'bad':'good',d:bad?'Похоже на встроенный просмотр внутри приложения. Такие окна почти всегда блокируют микрофон.':'Страница открыта в полноценном браузере — это правильно.',
+    fix:bad?'Скопируйте адрес помощника и откройте его в приложении Chrome. Внутри Qwen микрофон работать не будет.':''}},
+  ic:'<rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M3 9h18" stroke="currentColor" stroke-width="2"/>'},
+ {id:'getuser',t:'Доступ к микрофону',
+  run:function(){var ok=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+   return{s:ok?'good':'bad',d:ok?'Браузер умеет запрашивать микрофон.':'Браузер не даёт сайтам доступ к микрофону — типично для встроенных окон приложений.',
+    fix:ok?'':'Единственный надёжный путь — открыть в Chrome.'}},
+  ic:'<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+ {id:'sr',t:'Распознавание речи',
+  run:function(){return{s:SR?'good':'bad',d:SR?'Браузер умеет превращать голос в текст — можно говорить с помощником.':'Распознавание речи недоступно. Это ограничение браузера, а не помощника.',
+    fix:SR?'':'В Chrome на Android работает. Здесь пишите вопросы текстом — ответы голосом всё равно будут.'}},
+  ic:'<path d="M4 12h2l2-5 3 10 3-8 2 3h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
+ {id:'tts',t:'Ответы голосом',
+  run:function(){var ok=!!window.speechSynthesis;
+   return{s:ok?'good':'warn',d:ok?'Синтез речи на месте — помощник сможет говорить вслух.':'Озвучка недоступна, ответы будут только текстом.',fix:''}},
+  ic:'<path d="M4 9v6h4l5 4V5L8 9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M17 9a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+ {id:'perm',t:'Разрешение сайта',
+  run:function(){
+   if(!navigator.permissions||!navigator.permissions.query)return{s:'warn',d:'Браузер не даёт проверить разрешение заранее. Нажмите «Проверить микрофон» — увидите по факту.',fix:''};
+   return null}}
+];
+function renderTests(){
+ var w=$('#tests');w.innerHTML='';
+ TESTS.forEach(function(t,i){
+  var r=t.run?t.run():null;
+  if(!r)r={s:'warn',d:'Проверяю…',fix:''};
+  var el=document.createElement('article');el.className='test rv '+r.s;el.style.setProperty('--d',(i%6)*45+'ms');
+  var icon=r.s==='good'?'<path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>':
+   r.s==='bad'?'<path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>':
+   '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+  el.innerHTML='<span class="ic"><svg viewBox="0 0 24 24" fill="none">'+icon+'</svg></span><div style="flex:1"><b></b><p></p>'+(r.fix?'<div class="fix"><b>Что делать: </b><span class="fx"></span></div>':'')+'</div>';
+  $('b',el).textContent=t.t;$('p',el).textContent=r.d;
+  if(r.fix)$('.fx',el).textContent=r.fix;
+  w.appendChild(el);ro.observe(el)});
+ if(navigator.permissions&&navigator.permissions.query){
+  navigator.permissions.query({name:'microphone'}).then(function(p){
+   var last=$('#tests').lastElementChild;
+   var st=p.state==='granted'?'good':p.state==='denied'?'bad':'warn';
+   last.className='test rv shown '+st;
+   $('p',last).textContent=p.state==='granted'?'Микрофон уже разрешён для этого адреса.':
+    p.state==='denied'?'Микрофон ЗАПРЕЩЁН для этого адреса. Именно поэтому он молчит.':
+    'Разрешение ещё не спрашивали. Нажмите «Проверить микрофон» — браузер спросит.';
+   var ic=$('.ic',last);
+   ic.innerHTML='<svg viewBox="0 0 24 24" fill="none">'+(st==='good'?'<path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>':st==='bad'?'<path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>':'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')+'</svg>';
+   if(st==='bad'){var f=document.createElement('div');f.className='fix';
+    f.innerHTML='<b>Что делать: </b>Нажмите значок замка слева от адреса → «Разрешения» → Микрофон → «Разрешить». Затем обновите страницу.';
+    $('div',last).appendChild(f)}
+  }).catch(function(){})}
+ var bad=isWebView||location.protocol==='file:';
+ $('#envLine').textContent=(bad?'Встроенный просмотр':'Браузер')+' · '+(SR?'речь есть':'речи нет')+' · '+(window.speechSynthesis?'озвучка есть':'озвучки нет')}
+function stopMic(){
+ if(micRaf)cancelAnimationFrame(micRaf);micRaf=null;
+ if(micStream){micStream.getTracks().forEach(function(t){t.stop()});micStream=null}
+ analyser=null;freq=null;
+ meterBars.forEach(function(b){b.style.height='3%'});
+ $('#meter').classList.remove('live');
+ $('#micStop').disabled=true;$('#micTest').disabled=false}
+function micLoop(){
+ if(!analyser||!freq)return;
+ analyser.getByteFrequencyData(freq);
+ for(var i=0;i<meterBars.length;i++){
+  var v=freq[Math.floor(i*freq.length/meterBars.length)]/255;
+  meterBars[i].style.height=Math.max(3,v*100)+'%'}
+ micRaf=requestAnimationFrame(micLoop)}
+$('#micTest').onclick=function(){
+ var stat=$('#micStat');
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+  stat.className='micstat err';stat.textContent='Браузер не даёт доступ к микрофону. Откройте страницу в Chrome.';
+  tone(300,.2);return}
+ stat.className='micstat';stat.textContent='Запрашиваю микрофон… подтвердите в окне браузера.';
+ navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+  micStream=s;var a=ac();
+  if(a){var src=a.createMediaStreamSource(s);analyser=a.createAnalyser();analyser.fftSize=128;
+   analyser.smoothingTimeConstant=.7;src.connect(analyser);freq=new Uint8Array(analyser.frequencyBinCount);micLoop()}
+  $('#meter').classList.add('live');
+  stat.className='micstat ok';stat.textContent='Микрофон работает! Скажите что-нибудь — полоски двигаются.';
+  $('#micStop').disabled=false;$('#micTest').disabled=true;chime();renderTests()
+ }).catch(function(e){
+  var msg=e&&e.name==='NotAllowedError'?'Вы запретили микрофон. Нажмите замок слева от адреса → Разрешения → Микрофон → Разрешить.':
+   e&&e.name==='NotFoundError'?'Микрофон не найден на устройстве.':
+   e&&e.name==='NotReadableError'?'Микрофон занят другим приложением. Закройте его и попробуйте снова.':
+   'Микрофон недоступен здесь ('+(e&&e.name||'ошибка')+'). Откройте страницу в Chrome.';
+  stat.className='micstat err';stat.textContent=msg;tone(300,.22);renderTests()})};
+$('#micStop').onclick=function(){stopMic();$('#micStat').className='micstat';$('#micStat').textContent='Проверка остановлена.'};
+$('#fMic').onclick=function(){go('#mic');$('#micTest').click()};
+$('#srTest').onclick=function(){
+ var box=$('#heardBox');
+ if(!SR){box.className='heard';box.textContent='Распознавание речи здесь недоступно. Откройте в Chrome — там работает.';tone(300,.2);return}
+ try{
+  var r=new SR();rec=r;r.lang='ru-RU';r.interimResults=true;r.continuous=false;
+  box.className='heard live';box.textContent='Слушаю… скажите фразу';
+  r.onresult=function(e){var s='';for(var i=e.resultIndex;i<e.results.length;i++)s+=e.results[i][0].transcript;
+   box.textContent='Услышал: '+s};
+  r.onerror=function(e){box.className='heard';box.textContent='Ошибка распознавания: '+e.error+'. Чаще всего это запрет микрофона или отсутствие интернета.'};
+  r.onend=function(){box.className='heard';if(!box.textContent.indexOf('Услышал'))chime()};
+  r.start();tone(880,.12)
+ }catch(e){box.className='heard';box.textContent='Не удалось запустить распознавание. Откройте в Chrome.'}};
+$('#ttsTest').onclick=function(){
+ if(!window.speechSynthesis){toast('Озвучка недоступна в этом браузере');tone(300,.2);return}
+ try{var u=new SpeechSynthesisUtterance('Проверка связи. Я Максимка, голосовой помощник Романа.');
+  u.lang='ru-RU';var vs=speechSynthesis.getVoices().filter(function(v){return /ru/i.test(v.lang)});
+  if(vs[0])u.voice=vs[0];speechSynthesis.cancel();speechSynthesis.speak(u);toast('Говорю тестовую фразу')}
+ catch(e){toast('Озвучка не запустилась')}};
+$('#copyHelper').onclick=function(){copyText(cfg.url||HELPER,'Адрес помощника скопирован — вставьте в Chrome')};
+$('#openHelper').onclick=function(){var u=cfg.url||HELPER;copyText(u,'Адрес скопирован');
+ try{window.open(u,'_blank','noopener')}catch(e){}
+ toast('Если вкладка не открылась — вставьте адрес в Chrome вручную')};
+function micGuide(){
+ openText('Починка микрофона — полная инструкция',
+ 'ПОЧЕМУ МОЛЧИТ\n\n'+
+ 'Встроенный просмотр внутри приложения Qwen — это не полноценный браузер.\n'+
+ 'Android не даёт таким окнам доступ к микрофону, а распознавание речи\n'+
+ '(webkitSpeechRecognition) вообще реализовано только в Chrome.\n'+
+ 'Поэтому в предпросмотре микрофон не заработает никогда — это не поломка.\n\n'+
+ 'РЕШЕНИЕ ЗА ТРИ ШАГА\n\n'+
+ '1. Нажмите «Скопировать адрес помощника» на странице.\n'+
+ '   Адрес: '+(cfg.url||HELPER)+'\n\n'+
+ '2. Откройте приложение Chrome на телефоне (отдельное, не внутри Qwen).\n'+
+ '   Вставьте адрес в строку вверху и перейдите.\n\n'+
+ '3. Chrome спросит: «Разрешить доступ к микрофону?» → нажмите РАЗРЕШИТЬ.\n\n'+
+ 'ЕСЛИ ВЫ РАНЬШЕ НАЖАЛИ «БЛОКИРОВАТЬ»\n\n'+
+ '· Нажмите значок замка (или ⓘ) слева от адреса сайта.\n'+
+ '· Выберите «Разрешения» → «Микрофон».\n'+
+ '· Переключите на «Разрешить».\n'+
+ '· Обновите страницу.\n\n'+
+ 'ЕСЛИ МИКРОФОН ЗАНЯТ\n\n'+
+ 'Закройте диктофон, звонки, другие вкладки с микрофоном — Android\n'+
+ 'отдаёт микрофон только одному приложению за раз.\n\n'+
+ 'ЧТО РАБОТАЕТ ДАЖЕ БЕЗ МИКРОФОНА\n\n'+
+ '· Ответы голосом (озвучка) — работает почти везде.\n'+
+ '· Вопросы текстом — печатайте в поле, помощник ответит вслух.\n'+
+ '· Поиск в интернете, погода, расчёты, таймеры, заметки.\n\n'+
+ 'ПРОВЕРКА\n\n'+
+ 'Вернитесь на эту страницу в Chrome и нажмите «Проверить микрофон».\n'+
+ 'Полоски зашевелились — значит всё починено.')}
+$('#micGuide').onclick=micGuide;
+
+/* ---------- WAYS ---------- */
+var WAYS=[
+ {k:'kwgt',c:'var(--green)',n:'1',t:'KWGT — настоящий виджет',tag:'РЕКОМЕНДУЮ',
+  d:'Бесплатное приложение Kustom Widget Maker. Рисует виджет любой формы, в том числе круглый. Кладёте внутрь картинку шара и вешаете нажатие на ссылку помощника.',
+  i:'<rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="2"/><rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="2"/><rect x="3" y="13" width="18" height="8" rx="2" stroke="currentColor" stroke-width="2"/>'},
+ {k:'shortcut',c:'var(--cyan)',n:'2',t:'Shortcut Maker — проще всего',tag:'БЫСТРО',
+  d:'Приложение создаёт ярлык с любой картинкой, в том числе круглой. Это не живой виджет, а иконка, но выглядит похоже и делается за две минуты.',
+  i:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v8m-4-4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+ {k:'webwidget',c:'var(--magenta)',n:'3',t:'Web Widget — живая страница',tag:'ЭКСПЕРИМЕНТ',
+  d:'Приложения вроде «Web Widget» показывают кусочек сайта прямо в виджете. Шар будет живой, но форма прямоугольная и обновление зависит от приложения.',
+  i:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18" stroke="currentColor" stroke-width="2"/>'}];
+var STEPS={
+ kwgt:{head:'Настоящий круглый виджет через KWGT',lead:'Понадобится приложение KWGT и картинка из раздела «Иконка». Минут десять не спеша.',
+  list:[
+   {t:'Сохраните картинку шара',d:'Прокрутите до раздела «Иконка», настройте вид и нажмите «Сохранить картинку». Зажмите палец → «Сохранить изображение». Файл попадёт в галерею.',code:''},
+   {t:'Установите KWGT',d:'Откройте Play Market, найдите «KWGT Kustom Widget Maker» (автор Kustom Industries). Установите бесплатную версию.',code:'KWGT Kustom Widget Maker'},
+   {t:'Добавьте пустой виджет на стол',d:'Долгий тап по пустому месту рабочего стола → «Виджеты» → найдите KWGT → перетащите квадрат 2×2 на экран.',code:'2 × 2'},
+   {t:'Откройте редактор',d:'Нажмите на появившийся виджет — откроется KWGT. Выберите «Empty» (пустой шаблон) или нажмите плюс, чтобы создать новый.',code:''},
+   {t:'Добавьте форму-круг',d:'В редакторе: плюс внизу → Shape → в разделе Shape выберите Circle. Растяните на весь виджет.',code:'Shape → Circle'},
+   {t:'Подставьте картинку шара',d:'Ещё плюс → Bitmap → нажмите на поле Bitmap → выберите сохранённую картинку из галереи. Растяните по кругу.',code:'Bitmap → maksimka-widget.png'},
+   {t:'Уберите фон виджета',d:'Вкладка Background → выключите, чтобы вокруг круга была прозрачность, а не серая плашка.',code:'Background → Off'},
+   {t:'Повесьте нажатие',d:'Вкладка Touch → добавьте действие → Open Link → вставьте адрес помощника.',code:'Touch → Open Link'},
+   {t:'Вставьте ссылку',d:'В поле ссылки впишите адрес помощника. Кнопка «Копировать» ниже отдаст его готовым.',code:'URL'},
+   {t:'Сохраните и выйдите',d:'Нажмите значок сохранения вверху, затем назад. Виджет останется на рабочем столе — круглый шар Максимки.',code:''}]},
+ shortcut:{head:'Круглый ярлык через Shortcut Maker',lead:'Самый быстрый путь: две минуты и круглая иконка на столе. Это ярлык, а не живой виджет.',
+  list:[
+   {t:'Сохраните картинку шара',d:'Раздел «Иконка» → настройте → «Сохранить картинку» → долгий тап → «Сохранить изображение».',code:''},
+   {t:'Установите Shortcut Maker',d:'Play Market → «Shortcut Maker» (автор Rushikesh Kamewar). Бесплатно.',code:'Shortcut Maker'},
+   {t:'Выберите тип «Website»',d:'Откройте приложение → в списке типов выберите Website (или «Ссылка»).',code:'Website'},
+   {t:'Вставьте адрес помощника',d:'В поле URL вставьте ссылку. Название — «Максимка».',code:'URL'},
+   {t:'Поставьте свою картинку',d:'Нажмите на иконку → «Choose from gallery» → выберите сохранённый шар. В форме выберите Circle, если предлагается.',code:'Circle'},
+   {t:'Создайте ярлык',d:'Нажмите «Create shortcut» → подтвердите «Добавить». Круглая иконка появится на рабочем столе.',code:''}]},
+ webwidget:{head:'Живая страница в виджете',lead:'Виджет показывает саму страницу помощника. Форма прямоугольная, зато шар живой.',
+  list:[
+   {t:'Установите приложение виджета',d:'Play Market → поищите «Web Widget» или «Widgetify». Подойдёт любое, умеющее показывать сайт в виджете.',code:'Web Widget'},
+   {t:'Добавьте виджет на стол',d:'Долгий тап по рабочему столу → «Виджеты» → найдите установленное приложение → перетащите на экран.',code:''},
+   {t:'Укажите адрес помощника',d:'В настройках виджета вставьте ссылку на страницу Максимки.',code:'URL'},
+   {t:'Настройте обновление',d:'Поставьте интервал обновления поменьше, если приложение позволяет. Учтите: анимация внутри виджета обычно не двигается — это снимок страницы.',code:''},
+   {t:'Проверьте нажатие',d:'Тап по виджету должен открывать страницу целиком. Если нет — включите в настройках «Open on tap».',code:'Open on tap'}]}};
+function renderWays(){
+ var w=$('#wayGrid');w.innerHTML='';
+ WAYS.forEach(function(x){
+  var b=document.createElement('button');b.type='button';b.className='way rv'+(cfg.way===x.k?' on':'');
+  b.style.setProperty('--c',x.c);b.dataset.n=x.n;
+  b.innerHTML='<span class="wico"><svg viewBox="0 0 24 24" fill="none">'+x.i+'</svg></span><span class="wtag">'+x.tag+'</span><b></b><p></p>';
+  $('b',b).textContent=x.t;$('p',b).textContent=x.d;
+  b.onclick=function(){cfg.way=x.k;persist();renderWays();renderSteps();tone(720,.1);go('#steps')};
+  w.appendChild(b);ro.observe(b)})}
+function renderSteps(){
+ var s=STEPS[cfg.way]||STEPS.kwgt;
+ $('#stepsTitle').innerHTML='Шаги для <em>'+(cfg.way==='kwgt'?'KWGT':cfg.way==='shortcut'?'Shortcut Maker':'Web Widget')+'</em>';
+ $('#stepsHead').textContent=s.head;$('#stepsLead').textContent=s.lead;
+ $('#kwBox').style.display=cfg.way==='kwgt'?'':'none';
+ var w=$('#stepList');w.innerHTML='';
+ s.list.forEach(function(st,i){
+  var id=cfg.way+'-'+i;
+  var el=document.createElement('label');el.className='stp'+(stepDone[id]?' done':'');
+  el.innerHTML='<input type="checkbox" '+(stepDone[id]?'checked':'')+'><div style="flex:1"><span class="num">ШАГ '+(i+1)+'</span><b></b><p></p>'+(st.code?'<div style="margin-top:7px"><code></code></div>':'')+'</div>';
+  $('b',el).textContent=st.t;$('p',el).textContent=st.d;
+  if(st.code)$('code',el).textContent=st.code==='URL'?(cfg.url||HELPER):st.code;
+  $('input',el).onchange=function(e){stepDone[id]=e.target.checked;persist();renderSteps();if(e.target.checked)tone(880,.08)};
+  w.appendChild(el)});
+ var done=s.list.filter(function(_,i){return stepDone[cfg.way+'-'+i]}).length;
+ $('#stepProg').style.width=(done/s.list.length*100)+'%';
+ $('#stepText').textContent='Выполнено '+done+' из '+s.list.length;
+ if(done===s.list.length&&done>0)chime()}
+$('#stepsReset').onclick=function(){
+ var s=STEPS[cfg.way];s.list.forEach(function(_,i){delete stepDone[cfg.way+'-'+i]});persist();renderSteps();toast('Отметки сброшены')};
+$('#stepsCopy').onclick=function(){
+ var s=STEPS[cfg.way];
+ var t=s.head+'\n\n'+s.list.map(function(st,i){
+  return (i+1)+'. '+st.t+'\n   '+st.d+(st.code?'\n   → '+(st.code==='URL'?(cfg.url||HELPER):st.code):'')}).join('\n\n');
+ copyText(t,'Инструкция скопирована',function(){openText('Инструкция',t)})};
+$('#fGuide').onclick=function(){go('#steps');$('#stepsCopy').click()};
+$$('.js-cp').forEach(function(b){b.onclick=function(){copyText(b.dataset.v,'Скопировано: '+b.dataset.v)}});
+$('#kwCopyUrl').onclick=function(){copyText(cfg.url||HELPER,'Ссылка скопирована')};
+
+/* ---------- ICON CONFIG ---------- */
+function chipSet(sel,list,key,after){
+ var w=$(sel);w.innerHTML='';
+ list.forEach(function(o){var b=document.createElement('button');b.type='button';b.className='chip';b.dataset.k=o.k;b.textContent=o.n;
+  b.onclick=function(){cfg[key]=o.k;if(key==='bg')cfg.trans=(o.k==='transparent');persist();syncIcon();paintAll();if(after)after()};w.appendChild(b)})}
+chipSet('#shapeChips',SHAPES,'shape');
+chipSet('#palChips',Object.keys(PALS).map(function(k){return{k:k,n:PALS[k].n}}),'pal');
+chipSet('#bgChips',BGS,'bg');
+var szw=$('#sizeChips');
+SIZES.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='chip';b.dataset.s=s;b.textContent=s+' px';
+ b.onclick=function(){cfg.size=s;persist();syncIcon();paintAll()};szw.appendChild(b)});
+var RANGES=[['iScale','scale','×'],['iGlow','glow','%'],['iTurb','turb','%'],['iRing','ring','px'],['iBars','bars',''],['iSpeed','speed','×']];
+RANGES.forEach(function(p){$('#'+p[0]).oninput=function(e){cfg[p[1]]=+e.target.value;persist();syncIcon();paintAll()}});
+[['iTrans','trans'],['iOrbit','orbit'],['iDot','dot']].forEach(function(p){
+ $('#'+p[0]).onchange=function(e){cfg[p[1]]=e.target.checked;
+  if(p[1]==='trans'&&e.target.checked)cfg.bg='transparent';
+  if(p[1]==='trans'&&!e.target.checked&&cfg.bg==='transparent')cfg.bg='dark';
+  persist();syncIcon();paintAll()}});
+$('#iUrl').oninput=function(e){cfg.url=e.target.value.trim()||HELPER;persist();$('#kwUrl').textContent=cfg.url;renderSteps()};
+$('#iCopyUrl').onclick=function(){copyText(cfg.url||HELPER,'Ссылка скопирована')};
+$('#iRand').onclick=function(){
+ var pk=Object.keys(PALS);cfg.pal=pk[Math.floor(Math.random()*pk.length)];
+ cfg.scale=+(0.72+Math.random()*.4).toFixed(2);cfg.glow=+(0.5+Math.random()*.8).toFixed(2);
+ cfg.turb=+Math.random().toFixed(2);cfg.ring=Math.round(Math.random()*12);
+ cfg.bars=Math.floor(Math.random()*30)*4;persist();syncIcon();paintAll();toast('Новый вид шара')};
+$('#iReset').onclick=function(){Object.assign(cfg,DEF);persist();syncIcon();paintAll();renderSteps();toast('Настройки сброшены')};
+$('#fReset').onclick=function(){Object.assign(cfg,DEF);stepDone={};persist();syncIcon();paintAll();renderSteps();renderWays();toast('Всё сброшено')};
+function syncIcon(){
+ RANGES.forEach(function(p){var el=$('#'+p[0]);el.value=cfg[p[1]];
+  $('#'+p[0]+'V').textContent=p[2]==='%'?Math.round(cfg[p[1]]*100)+'%':p[2]==='×'?(+cfg[p[1]]).toFixed(2)+'×':p[2]==='px'?cfg[p[1]]+'px':String(cfg[p[1]])});
+ $('#iTrans').checked=cfg.trans;$('#iOrbit').checked=cfg.orbit;$('#iDot').checked=cfg.dot;
+ $('#iUrl').value=cfg.url;$('#kwUrl').textContent=cfg.url||HELPER;
+ $('#iconCap').textContent=cfg.size+' × '+cfg.size+' · PNG'+(cfg.trans?' · прозрачный':'');
+ $$('#shapeChips .chip').forEach(function(b){b.classList.toggle('on',b.dataset.k===cfg.shape)});
+ $$('#palChips .chip').forEach(function(b){b.classList.toggle('on',b.dataset.k===cfg.pal)});
+ $$('#bgChips .chip').forEach(function(b){b.classList.toggle('on',b.dataset.k===cfg.bg)});
+ $$('#sizeChips .chip').forEach(function(b){b.classList.toggle('on',+b.dataset.s===cfg.size)})}
+var iconCv=$('#iconCv'),widgetCv=$('#widgetCv');
+function paintAll(){
+ paintIcon(iconCv,Math.min(cfg.size,512),false,1.2);
+ paintIcon(widgetCv,440,true,1.2)}
+function iconURL(){var c=document.createElement('canvas');paintIcon(c,cfg.size,false,1.2);
+ try{return c.toDataURL('image/png')}catch(e){return ''}}
+function saveIcon(){var u=iconURL();if(!u)return toast('Не удалось подготовить картинку');openImage('maksimka-widget.png',u)}
+function dlIcon(){var u=iconURL();if(!u)return saveIcon();
+ try{var a=document.createElement('a');a.href=u;a.download='maksimka-widget.png';document.body.appendChild(a);a.click();a.remove();
+  toast('Если файл не появился — нажмите «Сохранить картинку» и зажмите палец')}catch(e){saveIcon()}}
+$('#iSave').onclick=saveIcon;$('#iDl').onclick=dlIcon;$('#fIcon').onclick=function(){go('#icon');saveIcon()};
+
+/* ---------- overlay ---------- */
+var ov=$('#ov'),ovBody=$('#ovBody'),ovLast=null;
+function openOv(title){ovLast=document.activeElement;$('#ovTitle').textContent=title;ovBody.innerHTML='';
+ ov.hidden=false;requestAnimationFrame(function(){ov.classList.add('in')});document.body.classList.add('lock');
+ document.addEventListener('keydown',ovKey);setTimeout(function(){$('#ovClose').focus()},50)}
+function closeOv(){ov.classList.remove('in');document.body.classList.remove('lock');document.removeEventListener('keydown',ovKey);
+ setTimeout(function(){ov.hidden=true;ovBody.innerHTML=''},280);if(ovLast&&ovLast.focus)ovLast.focus()}
+function ovKey(e){if(e.key==='Escape')return closeOv();if(e.key!=='Tab')return;
+ var f=$$('button,textarea,[href],img',ov).filter(function(x){return x.offsetParent!==null});if(!f.length)return;
+ var a=f[0],b=f[f.length-1];
+ if(e.shiftKey&&document.activeElement===a){e.preventDefault();b.focus()}
+ else if(!e.shiftKey&&document.activeElement===b){e.preventDefault();a.focus()}}
+$('#ovClose').onclick=closeOv;
+function openText(title,text){openOv(title);
+ var hint=document.createElement('div');hint.className='notebox';hint.style.maxWidth='760px';
+ hint.innerHTML='<svg viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.9"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><div><b>Выделите и скопируйте</b>«Выделить всё» → долгий тап по тексту → «Копировать».</div>';
+ ovBody.appendChild(hint);
+ var ta=document.createElement('textarea');ta.id='ovTa';ta.value=text;ta.setAttribute('readonly','');ovBody.appendChild(ta);
+ var acts=document.createElement('div');acts.className='ovacts';
+ acts.innerHTML='<button type="button" class="btn p" id="ovSel">Выделить всё</button><button type="button" class="btn g" id="ovCp">Копировать</button>';
+ ovBody.appendChild(acts);
+ $('#ovSel').onclick=function(){ta.focus();ta.select();ta.setSelectionRange(0,text.length);toast('Выделено — долгий тап → Копировать')};
+ $('#ovCp').onclick=function(){copyText(text,'Скопировано',function(){ta.focus();ta.select()})}}
+function openImage(title,url){openOv(title);
+ var hint=document.createElement('div');hint.className='notebox';hint.style.maxWidth='340px';
+ hint.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M9 11V6a2 2 0 1 1 4 0v5m0-1a2 2 0 1 1 4 0v1m0 0a2 2 0 1 1 4 0v4a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-1l-2-3a2 2 0 0 1 3-2l2 2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Зажмите палец на картинке</b>Держите секунду → «Сохранить изображение». Файл попадёт в галерею телефона.</div>';
+ ovBody.appendChild(hint);
+ var img=document.createElement('img');img.id='ovImg';img.src=url;img.alt=title;ovBody.appendChild(img);
+ var acts=document.createElement('div');acts.className='ovacts';
+ acts.innerHTML='<button type="button" class="btn p" id="ovDl">Скачать файл</button>';ovBody.appendChild(acts);
+ $('#ovDl').onclick=function(){try{var a=document.createElement('a');a.href=url;a.download=title;
+  document.body.appendChild(a);a.click();a.remove();toast('Если не скачалось — зажмите палец на картинке')}catch(e){toast('Зажмите палец на картинке')}}}
+
+/* ---------- theme / nav / bg ---------- */
+var stT=LS.get('theme',null);if(stT)root.setAttribute('data-theme',stT);
+function syncTheme(){var d=root.getAttribute('data-theme')!=='light';
+ $$('.js-theme').forEach(function(b){b.setAttribute('aria-pressed',String(!d));$('.tl',b).textContent=d?'Тёмная':'Светлая'})}
+$$('.js-theme').forEach(function(b){b.onclick=function(){var n=root.getAttribute('data-theme')==='light'?'dark':'light';
+ root.setAttribute('data-theme',n);LS.set('theme',n);syncTheme();drawBg()}});
+syncTheme();
+var nav=$('#nav'),prog=$('#prog');
+$('#burger').onclick=function(){var o=nav.classList.toggle('open');this.setAttribute('aria-expanded',String(o))};
+$$('#nlinks a').forEach(function(a){a.addEventListener('click',function(){nav.classList.remove('open');$('#burger').setAttribute('aria-expanded','false')})});
+function onScroll(){var y=scrollY||0;nav.classList.toggle('stuck',y>18);
+ var h=document.documentElement.scrollHeight-innerHeight;prog.style.transform='scaleX('+(h>0?Math.min(1,y/h):0)+')'}
+var tk=false;addEventListener('scroll',function(){if(!tk){tk=true;requestAnimationFrame(function(){onScroll();tk=false})}},{passive:true});onScroll();
+function go(h){var el=$(h);if(!el)return;scrollTo({top:Math.max(0,el.getBoundingClientRect().top+scrollY-(nav.offsetHeight+12)),behavior:reduced?'auto':'smooth'})}
+$$('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){var h=a.getAttribute('href');
+ if(h.length>1&&$(h)){e.preventDefault();go(h);history.replaceState(null,'',h)}})});
+$$('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
+var lmap={};$$('#nlinks a').forEach(function(a){lmap[a.getAttribute('href').slice(1)]=a});
+var so=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;
+ $$('#nlinks a').forEach(function(a){a.classList.remove('active');a.removeAttribute('aria-current')});
+ var a=lmap[e.target.id];if(a){a.classList.add('active');a.setAttribute('aria-current','true')}
+ var z=e.target.getAttribute('data-accent');if(z&&document.body.getAttribute('data-zone')!==z){document.body.setAttribute('data-zone',z);drawBg()}})},{rootMargin:'-45% 0px -50% 0px'});
+$$('main section[id]').forEach(function(s){so.observe(s)});
+var ro=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('shown');ro.unobserve(e.target)}})},{threshold:.06,rootMargin:'0px 0px -4% 0px'});
+$$('.rv').forEach(function(el,i){el.style.setProperty('--d',(i%6)*55+'ms');ro.observe(el)});
+var bgc=$('#bg'),bx=bgc.getContext('2d'),BW=0,BH=0,orbs=[],dust=[],T=0,raf=null;
+function sizeBg(){var d=Math.min(devicePixelRatio||1,1.5);BW=bgc.clientWidth;BH=bgc.clientHeight;
+ bgc.width=Math.max(1,BW*d|0);bgc.height=Math.max(1,BH*d|0);bx.setTransform(d,0,0,d,0,0);
+ var R=Math.max(BW,BH);orbs=[{x:BW*.5,y:BH*.1,r:R*.34,dx:.05,dy:.035,c:0},{x:BW*.9,y:BH*.36,r:R*.26,dx:-.045,dy:.03,c:1},{x:BW*.12,y:BH*.86,r:R*.3,dx:.04,dy:-.03,c:2}];
+ var n=BW<700?15:28;dust=[];for(var i=0;i<n;i++)dust.push({x:Math.random()*BW,y:Math.random()*BH,r:1+Math.random()*3,v:.1+Math.random()*.38,a:.07+Math.random()*.2,w:Math.random()*6.28})}
+function drawBg(){if(!BW||!BH)return;
+ var hues=(PALS[cfg.pal]||PALS.aurora).h,light=root.getAttribute('data-theme')==='light';
+ bx.clearRect(0,0,BW,BH);
+ orbs.forEach(function(o,i){var c=hues[i%hues.length];
+  var g=bx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+  g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+','+(light?.1:.18)+')');
+  g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+  bx.fillStyle=g;bx.beginPath();bx.arc(o.x,o.y,o.r,0,6.2832);bx.fill()});
+ var c2=hues[0];
+ dust.forEach(function(p){var x=p.x+Math.sin(p.w)*10;bx.beginPath();bx.arc(x,p.y,p.r,0,6.2832);
+  bx.fillStyle='rgba('+c2[0]+','+c2[1]+','+c2[2]+','+(light?p.a*.5:p.a)+')';bx.fill()})}
+function loop(){T+=reduced?0:.016*cfg.speed;
+ orbs.forEach(function(o){o.x+=o.dx;o.y+=o.dy;if(o.x<-o.r*.3||o.x>BW+o.r*.3)o.dx*=-1;if(o.y<-o.r*.3||o.y>BH+o.r*.3)o.dy*=-1});
+ dust.forEach(function(p){p.y-=p.v;p.w+=.008;if(p.y<-10){p.y=BH+10;p.x=Math.random()*BW}});
+ drawBg();
+ paintIcon(widgetCv,440,true,T);
+ raf=requestAnimationFrame(loop)}
+function startLoop(){if(raf)cancelAnimationFrame(raf);raf=null;
+ if(!reduced&&!document.hidden)raf=requestAnimationFrame(loop);else{drawBg();paintIcon(widgetCv,440,false,1.2)}}
+sizeBg();paintAll();startLoop();
+var rz;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(function(){sizeBg();drawBg()},150)});
+document.addEventListener('visibilitychange',function(){if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=null}else startLoop()});
+addEventListener('pagehide',function(){stopMic();try{if(rec)rec.stop()}catch(e){}});
+document.addEventListener('keydown',function(e){
+ if(e.key==='Escape'&&!ov.hidden)return closeOv();
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();go('#mic')}});
+
+/* ---------- boot ---------- */
+$('#yr').textContent=String(new Date().getFullYear());
+syncSound();syncIcon();renderWays();renderSteps();renderTests();
+if(location.hash&&$(location.hash))setTimeout(function(){go(location.hash)},250);
+})();
+</script>
+</body>
+  </html>
